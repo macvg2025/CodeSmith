@@ -5,55 +5,59 @@
 <title>CodeSmith - Mini Coding AI</title>
 <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.css" rel="stylesheet"/>
 <style>
-  * { margin:0; padding:0; box-sizing:border-box; font-family: 'Roboto Mono', monospace; }
+  /* ===== Reset & Base ===== */
+  * { margin:0; padding:0; box-sizing:border-box; font-family: 'Fira Code', monospace; }
   body {
-    background: linear-gradient(135deg, #0d0d1a, #1a1a2e);
-    color: #fff;
+    background: #121212;
+    color: #eee;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 50px;
+    padding: 40px;
     min-height: 100vh;
   }
 
   h1 {
-    margin-bottom: 30px;
     font-size: 3rem;
-    background: linear-gradient(90deg, #00f, #0ff);
+    font-weight: 700;
+    margin-bottom: 30px;
+    background: linear-gradient(90deg, #42a5f5, #00acc1);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    animation: gradientShift 3s infinite alternate;
-  }
-  @keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    100% { background-position: 100% 50%; }
   }
 
+  /* ===== Container ===== */
   .container {
-    background: #25253a;
-    padding: 30px 40px;
-    border-radius: 20px;
+    background: #1e1e28;
     width: 700px;
     max-width: 95%;
-    box-shadow: 0 0 50px rgba(0, 255, 255, 0.3);
+    padding: 30px 40px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
     display: flex;
     flex-direction: column;
     gap: 20px;
+    transition: all 0.3s ease;
   }
 
   textarea {
     width: 100%;
-    height: 140px;
-    background: #1e1e2f;
-    color: #fff;
-    border: 2px solid #0ff;
+    height: 150px;
+    background: #2a2a3a;
+    border: none;
     border-radius: 10px;
     padding: 15px;
+    color: #eee;
     font-size: 16px;
     resize: vertical;
-    transition: border 0.3s;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.4);
+    transition: box-shadow 0.3s ease, transform 0.2s ease;
   }
-  textarea:focus { border-color: #00f; outline: none; }
+  textarea:focus {
+    outline: none;
+    box-shadow: inset 0 2px 8px rgba(0,188,212,0.7);
+    transform: scale(1.02);
+  }
 
   select, button {
     padding: 12px 20px;
@@ -64,30 +68,36 @@
   }
 
   select {
-    background: #1e1e2f;
-    color: #fff;
-    border: 2px solid #0ff;
+    background: #2a2a3a;
+    color: #eee;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.4);
   }
-  select:focus { border-color: #00f; outline: none; }
+  select:focus { outline: none; box-shadow: inset 0 2px 8px rgba(0,188,212,0.7); }
 
   button {
-    background: #00f;
+    background: #00acc1;
     color: #fff;
+    font-weight: 600;
     cursor: pointer;
-    font-weight: bold;
+    box-shadow: 0 5px 15px rgba(0,188,212,0.4);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
-  button:hover { background: #0ff; color: #000; }
+  button:hover {
+    background: #42a5f5;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,188,212,0.6);
+  }
 
   pre {
-    background: #1e1e2f;
+    background: #2a2a3a;
     padding: 20px;
     border-radius: 10px;
-    max-height: 300px;
+    max-height: 350px;
     overflow-x: auto;
+    overflow-y: auto;
     font-size: 15px;
-    border: 2px solid #0ff;
-    transition: border 0.3s;
     position: relative;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
   }
 
   .thinking {
@@ -95,27 +105,37 @@
     width: 12px;
     height: 12px;
     margin: 0 2px;
-    background-color: #0ff;
+    background-color: #00acc1;
     border-radius: 50%;
     animation: blink 1s infinite alternate;
   }
   .thinking:nth-child(2) { animation-delay: 0.2s; }
   .thinking:nth-child(3) { animation-delay: 0.4s; }
-  @keyframes blink { 0% { transform: scale(1); opacity: 0.3; } 50% { transform: scale(1.5); opacity: 1; } 100% { transform: scale(1); opacity: 0.3; } }
+  @keyframes blink {
+    0% { transform: scale(1); opacity: 0.3; }
+    50% { transform: scale(1.5); opacity: 1; }
+    100% { transform: scale(1); opacity: 0.3; }
+  }
 
   .copy-btn {
     position: absolute;
     top: 10px;
     right: 10px;
-    background: #0ff;
-    color: #000;
+    background: #00acc1;
+    color: #fff;
     border: none;
-    padding: 5px 10px;
+    padding: 5px 12px;
     border-radius: 5px;
     cursor: pointer;
     font-size: 13px;
+    font-weight: 600;
+    transition: 0.2s;
   }
-  .copy-btn:hover { background: #00f; color: #fff; }
+  .copy-btn:hover {
+    background: #42a5f5;
+    color: #000;
+  }
+
 </style>
 </head>
 <body>
@@ -141,7 +161,7 @@ async function askAI() {
   const prompt = document.getElementById('prompt').value;
   const language = document.getElementById('language').value;
   const output = document.getElementById('output');
-  
+
   if (!prompt) return alert("Type something first!");
   output.innerHTML = '<span class="thinking"></span><span class="thinking"></span><span class="thinking"></span> Thinking...';
 
@@ -163,7 +183,7 @@ async function askAI() {
     });
     const data = await response.json();
     const code = data.choices[0].message.content;
-    output.innerHTML = '<button class="copy-btn" onclick="copyCode()">Copy</button>' + '<code class="language-' + language.toLowerCase() + '">'+ code + '</code>';
+    output.innerHTML = '<button class="copy-btn" onclick="copyCode()">Copy</button><code class="language-'+language.toLowerCase()+'">'+code+'</code>';
     Prism.highlightAll();
   } catch(err) {
     output.textContent = "Error: " + err.message;
