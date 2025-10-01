@@ -180,7 +180,7 @@ async function sendMessage(){
   addMessage(userText,'user'); prompt.value='';
   const typingBubble=addTypingBubble();
   try{
-    const response=await fetch("https://api.openai.com/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer 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"},body:JSON.stringify({model:"gpt-3.5-turbo",messages:[{role:"system",content:"You are Devion, an AI coding assistant. Return clean, working code."},{role:"user",content:userText}],max_tokens:500})});
+    const response=await fetch("https://api.openai.com/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer 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"},body:JSON.stringify({model:"gpt-3.5-turbo",messages:[{role:"system",content:"You are Devion, an AI coding assistant. Return clean, working code."},{role:"user",content:userText}],max_tokens:500})});
     const data=await response.json();
     if(!data.choices||!data.choices[0].message){typingBubble.remove(); addMessage("Error: API returned nothing.",'ai'); return;}
     const aiText=data.choices[0].message.content;
