@@ -2,168 +2,238 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>CodeSmith - Mini Coding AI</title>
-<link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.css" rel="stylesheet"/>
+<title>Devion - AI Coding Assistant</title>
+<link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.css" rel="stylesheet"/>
 <style>
-  /* ===== Reset & Base ===== */
-  * { margin:0; padding:0; box-sizing:border-box; font-family: 'Fira Code', monospace; }
-  body {
-    background: #121212;
-    color: #eee;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 40px;
-    min-height: 100vh;
-  }
+* { margin:0; padding:0; box-sizing:border-box; font-family: 'Fira Code', monospace; }
 
-  h1 {
-    font-size: 3rem;
-    font-weight: 700;
-    margin-bottom: 30px;
-    background: linear-gradient(90deg, #42a5f5, #00acc1);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
+/* ===== Layout ===== */
+body {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background: #f7f7f7;
+  color: #111;
+}
 
-  /* ===== Container ===== */
-  .container {
-    background: #1e1e28;
-    width: 700px;
-    max-width: 95%;
-    padding: 30px 40px;
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    transition: all 0.3s ease;
-  }
+/* Sidebar */
+#sidebar {
+  width: 240px;
+  background: #fff;
+  border-right: 1px solid #ddd;
+  box-shadow: 2px 0 4px rgba(0,0,0,0.05);
+  overflow-y: auto;
+}
+#sidebar h2 { padding: 20px; font-size: 1.4rem; border-bottom: 1px solid #ddd; }
+#sidebar ul { list-style: none; }
+#sidebar li {
+  padding: 12px 20px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+}
+#sidebar li:hover { background: #e0f3ff; }
 
-  textarea {
-    width: 100%;
-    height: 150px;
-    background: #2a2a3a;
-    border: none;
-    border-radius: 10px;
-    padding: 15px;
-    color: #eee;
-    font-size: 16px;
-    resize: vertical;
-    box-shadow: inset 0 2px 6px rgba(0,0,0,0.4);
-    transition: box-shadow 0.3s ease, transform 0.2s ease;
-  }
-  textarea:focus {
-    outline: none;
-    box-shadow: inset 0 2px 8px rgba(0,188,212,0.7);
-    transform: scale(1.02);
-  }
+/* Main chat */
+#main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
 
-  select, button {
-    padding: 12px 20px;
-    border-radius: 10px;
-    border: none;
-    font-size: 16px;
-    transition: 0.3s;
-  }
+/* Header */
+header {
+  padding: 20px;
+  background: #fff;
+  text-align: center;
+  font-size: 1.8rem;
+  font-weight: 700;
+  border-bottom: 1px solid #ddd;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
 
-  select {
-    background: #2a2a3a;
-    color: #eee;
-    box-shadow: inset 0 2px 5px rgba(0,0,0,0.4);
-  }
-  select:focus { outline: none; box-shadow: inset 0 2px 8px rgba(0,188,212,0.7); }
+/* Chat container */
+#chat-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  scroll-behavior: smooth;
+  position: relative;
+}
 
-  button {
-    background: #00acc1;
-    color: #fff;
-    font-weight: 600;
-    cursor: pointer;
-    box-shadow: 0 5px 15px rgba(0,188,212,0.4);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-  button:hover {
-    background: #42a5f5;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0,188,212,0.6);
-  }
+/* Messages */
+.message {
+  max-width: 75%;
+  padding: 12px 18px;
+  border-radius: 12px;
+  line-height: 1.4;
+  word-wrap: break-word;
+  animation: fadeIn 0.3s ease-out;
+}
+.user { align-self: flex-end; background: #e0f3ff; color: #111; border-bottom-right-radius: 0; }
+.ai { align-self: flex-start; background: #fff; border: 1px solid #ddd; border-bottom-left-radius: 0; }
 
-  pre {
-    background: #2a2a3a;
-    padding: 20px;
-    border-radius: 10px;
-    max-height: 350px;
-    overflow-x: auto;
-    overflow-y: auto;
-    font-size: 15px;
-    position: relative;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
-  }
+@keyframes fadeIn { from {opacity:0; transform: translateY(10px);} to {opacity:1; transform:translateY(0);} }
 
-  .thinking {
-    display: inline-block;
-    width: 12px;
-    height: 12px;
-    margin: 0 2px;
-    background-color: #00acc1;
-    border-radius: 50%;
-    animation: blink 1s infinite alternate;
-  }
-  .thinking:nth-child(2) { animation-delay: 0.2s; }
-  .thinking:nth-child(3) { animation-delay: 0.4s; }
-  @keyframes blink {
-    0% { transform: scale(1); opacity: 0.3; }
-    50% { transform: scale(1.5); opacity: 1; }
-    100% { transform: scale(1); opacity: 0.3; }
-  }
+/* Typing animation */
+.typing-dots {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin: 0 2px;
+  background-color: #42a5f5;
+  border-radius: 50%;
+  animation: blink 1s infinite alternate;
+}
+.typing-dots:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots:nth-child(3) { animation-delay: 0.4s; }
+@keyframes blink {
+  0% { transform: scale(1); opacity: 0.3; }
+  50% { transform: scale(1.5); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.3; }
+}
 
-  .copy-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: #00acc1;
-    color: #fff;
-    border: none;
-    padding: 5px 12px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 600;
-    transition: 0.2s;
-  }
-  .copy-btn:hover {
-    background: #42a5f5;
-    color: #000;
-  }
+/* Input bar */
+#input-bar {
+  display: flex;
+  padding: 15px;
+  background: #fff;
+  border-top: 1px solid #ddd;
+  box-shadow: 0 -2px 4px rgba(0,0,0,0.05);
+}
+#prompt {
+  flex: 1;
+  padding: 12px 15px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+}
+#prompt:focus { outline: none; border-color: #42a5f5; }
+#send-btn {
+  margin-left: 10px;
+  padding: 12px 20px;
+  border-radius: 10px;
+  border: none;
+  background: #42a5f5;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+#send-btn:hover { background: #1e88e5; }
 
+/* Code inside messages */
+pre {
+  background: #f5f5f5;
+  padding: 12px;
+  border-radius: 8px;
+  overflow-x: auto;
+  border: 1px solid #ddd;
+  margin-top: 8px;
+  font-size: 14px;
+  position: relative;
+}
+.copy-btn {
+  background: #42a5f5;
+  color: #fff;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  float: right;
+  margin-bottom: 6px;
+}
+.copy-btn:hover { background: #1e88e5; color: #fff; }
+
+/* Collapsible code */
+.collapsible { cursor: pointer; }
+.collapsible + pre { display: none; }
+
+/* Floating AI bubble */
+.ai-floating {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: blink 1s infinite alternate;
+}
 </style>
 </head>
 <body>
 
-<h1>CodeSmith</h1>
-<div class="container">
-  <textarea id="prompt" placeholder="Describe your coding problem here..."></textarea>
-  <select id="language">
-    <option value="JavaScript">JavaScript</option>
-    <option value="Python">Python</option>
-    <option value="HTML/CSS">HTML/CSS</option>
-  </select>
-  <button onclick="askAI()">Ask AI</button>
-  <pre id="output">
-    <button class="copy-btn" onclick="copyCode()">Copy</button>
-    Your AI-generated code will appear here...
-  </pre>
+<div id="sidebar">
+  <h2>Conversations</h2>
+  <ul id="history">
+    <!-- History items -->
+  </ul>
+</div>
+
+<div id="main">
+<header>Devion</header>
+<div id="chat-container"></div>
+<div id="input-bar">
+  <textarea id="prompt" rows="1" placeholder="Ask Devion to write code..."></textarea>
+  <button id="send-btn" onclick="sendMessage()">Send</button>
+</div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.js"></script>
 <script>
-async function askAI() {
-  const prompt = document.getElementById('prompt').value;
-  const language = document.getElementById('language').value;
-  const output = document.getElementById('output');
+const chatContainer = document.getElementById('chat-container');
+const prompt = document.getElementById('prompt');
+const historyList = document.getElementById('history');
 
-  if (!prompt) return alert("Type something first!");
-  output.innerHTML = '<span class="thinking"></span><span class="thinking"></span><span class="thinking"></span> Thinking...';
+function addMessage(content, cls, isCode=false) {
+  const msg = document.createElement('div');
+  msg.className = 'message ' + cls;
+
+  if (isCode) {
+    const codeContainer = document.createElement('div');
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'copy-btn';
+    copyBtn.textContent = 'Copy';
+    copyBtn.onclick = () => { navigator.clipboard.writeText(codeEl.innerText); alert('Code copied!'); };
+    const codeEl = document.createElement('code');
+    codeEl.className = 'language-javascript';
+    codeEl.textContent = content;
+    const pre = document.createElement('pre');
+    pre.appendChild(codeEl);
+    codeContainer.appendChild(copyBtn);
+    codeContainer.appendChild(pre);
+    msg.appendChild(codeContainer);
+    Prism.highlightAll();
+  } else { msg.textContent = content; }
+
+  chatContainer.appendChild(msg);
+  chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+
+// AI typing floating bubble
+function addTypingBubble() {
+  const bubble = document.createElement('div');
+  bubble.className = 'ai-floating';
+  bubble.innerHTML = '<span class="typing-dots"></span><span class="typing-dots"></span><span class="typing-dots"></span>';
+  chatContainer.appendChild(bubble);
+  return bubble;
+}
+
+async function sendMessage() {
+  const userText = prompt.value.trim();
+  if (!userText) return;
+  addMessage(userText, 'user');
+  prompt.value = '';
+
+  const typingBubble = addTypingBubble();
 
   try {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -175,28 +245,32 @@ async function askAI() {
       body: JSON.stringify({
         model: "gpt-3.5-turbo",
         messages: [
-          { role: "system", content: "You are CodeSmith, a coding AI. Generate working " + language + " code, clear and minimal." },
-          { role: "user", content: prompt }
+          { role: "system", content: "You are Devion, an AI coding assistant. Return clean, working code." },
+          { role: "user", content: userText }
         ],
         max_tokens: 500
       })
     });
     const data = await response.json();
-    const code = data.choices[0].message.content;
-    output.innerHTML = '<button class="copy-btn" onclick="copyCode()">Copy</button><code class="language-'+language.toLowerCase()+'">'+code+'</code>';
-    Prism.highlightAll();
+    if (!data.choices || !data.choices[0].message) {
+      typingBubble.remove();
+      addMessage("Error: API returned nothing.", 'ai');
+      return;
+    }
+    const aiText = data.choices[0].message.content;
+    typingBubble.remove();
+    addMessage(aiText, 'ai', true);
+
+    // Save to history
+    const li = document.createElement('li');
+    li.textContent = userText.slice(0, 30) + (userText.length > 30 ? '...' : '');
+    li.onclick = () => { addMessage(aiText, 'ai', true); };
+    historyList.appendChild(li);
   } catch(err) {
-    output.textContent = "Error: " + err.message;
+    typingBubble.remove();
+    addMessage("Error: " + err.message, 'ai');
   }
 }
-
-function copyCode() {
-  const codeEl = document.querySelector('#output code');
-  if (!codeEl) return;
-  navigator.clipboard.writeText(codeEl.innerText);
-  alert("Code copied!");
-}
 </script>
-
 </body>
 </html>
