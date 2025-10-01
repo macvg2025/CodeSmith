@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CodeSmith - Mini Coding AI</title>
+<link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.css" rel="stylesheet"/>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; font-family: 'Roboto Mono', monospace; }
+  body {
+    background: linear-gradient(135deg, #0d0d1a, #1a1a2e);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 50px;
+    min-height: 100vh;
+  }
+
+  h1 {
+    margin-bottom: 30px;
+    font-size: 3rem;
+    background: linear-gradient(90deg, #00f, #0ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradientShift 3s infinite alternate;
+  }
+  @keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 100% 50%; }
+  }
+
+  .container {
+    background: #25253a;
+    padding: 30px 40px;
+    border-radius: 20px;
+    width: 700px;
+    max-width: 95%;
+    box-shadow: 0 0 50px rgba(0, 255, 255, 0.3);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  textarea {
+    width: 100%;
+    height: 140px;
+    background: #1e1e2f;
+    color: #fff;
+    border: 2px solid #0ff;
+    border-radius: 10px;
+    padding: 15px;
+    font-size: 16px;
+    resize: vertical;
+    transition: border 0.3s;
+  }
+  textarea:focus { border-color: #00f; outline: none; }
+
+  select, button {
+    padding: 12px 20px;
+    border-radius: 10px;
+    border: none;
+    font-size: 16px;
+    transition: 0.3s;
+  }
+
+  select {
+    background: #1e1e2f;
+    color: #fff;
+    border: 2px solid #0ff;
+  }
+  select:focus { border-color: #00f; outline: none; }
+
+  button {
+    background: #00f;
+    color: #fff;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  button:hover { background: #0ff; color: #000; }
+
+  pre {
+    background: #1e1e2f;
+    padding: 20px;
+    border-radius: 10px;
+    max-height: 300px;
+    overflow-x: auto;
+    font-size: 15px;
+    border: 2px solid #0ff;
+    transition: border 0.3s;
+    position: relative;
+  }
+
+  .thinking {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin: 0 2px;
+    background-color: #0ff;
+    border-radius: 50%;
+    animation: blink 1s infinite alternate;
+  }
+  .thinking:nth-child(2) { animation-delay: 0.2s; }
+  .thinking:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes blink { 0% { transform: scale(1); opacity: 0.3; } 50% { transform: scale(1.5); opacity: 1; } 100% { transform: scale(1); opacity: 0.3; } }
+
+  .copy-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #0ff;
+    color: #000;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .copy-btn:hover { background: #00f; color: #fff; }
+</style>
+</head>
+<body>
+
+<h1>CodeSmith</h1>
+<div class="container">
+  <textarea id="prompt" placeholder="Describe your coding problem here..."></textarea>
+  <select id="language">
+    <option value="JavaScript">JavaScript</option>
+    <option value="Python">Python</option>
+    <option value="HTML/CSS">HTML/CSS</option>
+  </select>
+  <button onclick="askAI()">Ask AI</button>
+  <pre id="output">
+    <button class="copy-btn" onclick="copyCode()">Copy</button>
+    Your AI-generated code will appear here...
+  </pre>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.js"></script>
+<script>
+async function askAI() {
+  const prompt = document.getElementById('prompt').value;
+  const language = document.getElementById('language').value;
+  const output = document.getElementById('output');
+  
+  if (!prompt) return alert("Type something first!");
+  output.innerHTML = '<span class="thinking"></span><span class="thinking"></span><span class="thinking"></span> Thinking...';
+
+  try {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer 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"
+      },
+      body: JSON.stringify({
+        model: "gpt-5-mini",
+        messages: [
+          { role: "system", content: "You are CodeSmith, a coding AI. Generate working " + language + " code, clear and minimal." },
+          { role: "user", content: prompt }
+        ],
+        max_tokens: 500
+      })
+    });
+    const data = await response.json();
+    const code = data.choices[0].message.content;
+    output.innerHTML = '<button class="copy-btn" onclick="copyCode()">Copy</button>' + '<code class="language-' + language.toLowerCase() + '">'+ code + '</code>';
+    Prism.highlightAll();
+  } catch(err) {
+    output.textContent = "Error: " + err.message;
+  }
+}
+
+function copyCode() {
+  const codeEl = document.querySelector('#output code');
+  if (!codeEl) return;
+  navigator.clipboard.writeText(codeEl.innerText);
+  alert("Code copied!");
+}
+</script>
+
+</body>
+</html>
